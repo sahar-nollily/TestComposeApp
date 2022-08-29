@@ -4,10 +4,12 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.testcomposeapp.core.Constants.TAG
-import com.android.testcomposeapp.data.datasource.api.model.Businesses
+import com.android.testcomposeapp.data.datasource.api.model.SearchResponseContainer
+import com.android.testcomposeapp.domain.model.BusinessData
 import com.android.testcomposeapp.domain.usecase.GetBusinesses
 import com.android.testcomposeapp.domain.usecase.GetCategories
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -17,44 +19,30 @@ class HomeViewModel @Inject constructor(
     private val getCategories: GetCategories
 ) : ViewModel() {
 
-    val businessesState = getBusinesses.state
+    private val _businessesState = getBusinesses.state
+    val businessesState = _businessesState.asStateFlow()
     val categoriesState = getCategories.state
-    var businessesList: MutableList<Pair<String, List<Businesses>>> = mutableListOf()
-    val list = mutableListOf<Businesses>()
+    val listN = mutableListOf<BusinessData>()
 
-    fun searchBusinesses(category: String) = viewModelScope.launch {
-        Log.d(TAG, "searchBusinesses: $category")
-        if (businessesList.isEmpty()) {
-            Log.d(TAG, "searchBusinesses: invoke")
-            getBusinesses.invoke(category)
-        } else {
-            businessesList.map {
-                if (it.first == category || it.first.isBlank()) {
-                    Log.d(TAG, "searchBusinesses: if")
-                    return@map
-                } else {
-                    Log.d(TAG, "searchBusinesses: else")
-                    getBusinesses.invoke(category)
-                }
-            }
-        }
+    init {
+        getCategories()
     }
 
-    fun controlData(category: String, list: List<Businesses>) = viewModelScope.launch {
-        businessesList.forEach {
-            Log.d(TAG, "controlData: $it")
-            if (it.first == category) {
-                this@HomeViewModel.list.clear()
-                this@HomeViewModel.list.addAll(it.second)
-                Log.d(TAG, "controlData: if $category")
-                return@forEach
-            } else {
-                businessesList.add(Pair(category, list))
-                this@HomeViewModel.list.clear()
-                this@HomeViewModel.list.addAll(list)
-                Log.d(TAG, "controlData: else $category")
+    fun searchBusinesses(category: String) = viewModelScope.launch {
+        val x = listN.filter {
+            it.name == category
+        }
+        if (x.isEmpty()) {
+            getBusinesses.invoke(category)
+            Log.d(TAG, "searchBusinesses: if $category")
+        } else {
+            _businessesState.value = businessesState.value.copy(
+                data = SearchResponseContainer(x.first().list),
+                isLoading = false,
+                errorMessage = null
+            )
+            Log.d(TAG, "searchBusinesses: else $category")
 
-            }
         }
     }
 

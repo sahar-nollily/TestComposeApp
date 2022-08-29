@@ -15,12 +15,13 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.android.mujaz.ui.theme.colors.mujazColor
+import com.android.testcomposeapp.ui.component.TabLayout
 import com.android.testcomposeapp.ui.favourite.FavouriteScreen
-import com.android.testcomposeapp.ui.home.HomeScreen
 import com.android.testcomposeapp.ui.profile.ProfileScreen
+import com.google.accompanist.pager.ExperimentalPagerApi
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPagerApi::class)
 @Composable
 fun NavigationGraph() {
     val navController = rememberNavController()
@@ -30,7 +31,7 @@ fun NavigationGraph() {
 
         NavHost(navController = navController, startDestination = BottomNavItem.Home.screenRoute) {
             composable(BottomNavItem.Home.screenRoute) {
-                HomeScreen()
+                TabLayout()
             }
 
             composable(BottomNavItem.Profile.screenRoute) {
