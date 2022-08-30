@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.*
@@ -23,33 +24,37 @@ import kotlinx.coroutines.launch
 @Composable
 fun TabLayout(viewModel: HomeViewModel = hiltViewModel()) {
     val state = viewModel.categoriesState.collectAsState().value
-    var cat = remember { "" }
-    val test = remember { mutableStateOf("") }
+    var currentCategory = remember { "" }
+    val category = remember { mutableStateOf("") }
 
-    when {
-        state.isLoading -> CircularProgressIndicator()
-        state.errorMessage != null -> Text(text = state.errorMessage)
-        state.data?.categories?.size != 0 -> {
-            val pagerState = rememberPagerState(pageCount = state.data?.categories?.size ?: 0)
-            Column(
-                modifier = Modifier.background(Color.White)
-            ) {
-                state.data?.categories?.let {
-                    val list = it.subList(0, 10)
-                    Tabs(pagerState = pagerState, list)
-                    HorizontalPager(state = pagerState) { page ->
-                        cat = it[page].alias.toString()
-                        HomeScreen(test.value)
+    Box(modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ){
+        when {
+            state.isLoading -> CircularProgressIndicator()
+            state.errorMessage != null -> Text(text = state.errorMessage)
+            state.data?.categories?.size != 0 -> {
+                val pagerState = rememberPagerState(pageCount = state.data?.categories?.size ?: 0)
+                Column(
+                    modifier = Modifier.background(Color.White)
+                ) {
+                    state.data?.categories?.let {
+                        val list = it.subList(0, 10)
+                        Tabs(pagerState = pagerState, list)
+                        HorizontalPager(state = pagerState) { page ->
+                            currentCategory = it[page].alias.toString()
+                            HomeScreen(category.value)
+                        }
                     }
                 }
             }
         }
     }
 
-    LaunchedEffect(cat) {
-        if (cat.isNotBlank()) {
-            test.value = cat
-            viewModel.searchBusinesses(test.value)
+    LaunchedEffect(currentCategory) {
+        if (currentCategory.isNotBlank()) {
+            category.value = currentCategory
+            viewModel.searchBusinesses(category.value)
         }
     }
 }
@@ -76,7 +81,10 @@ fun Tabs(pagerState: PagerState, list: List<Categories>) {
                 text = {
                     Text(
                         categories.title ?: "wrong",
-                        color = if (pagerState.currentPage == index) MaterialTheme.mujazColor.identity else MaterialTheme.mujazColor.textColor1
+                        color = if (pagerState.currentPage == index)
+                            MaterialTheme.mujazColor.identity
+                        else
+                            MaterialTheme.mujazColor.textColor1
                     )
                 },
                 selected = pagerState.currentPage == index,

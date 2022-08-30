@@ -22,22 +22,22 @@ class HomeViewModel @Inject constructor(
     private val _businessesState = getBusinesses.state
     val businessesState = _businessesState.asStateFlow()
     val categoriesState = getCategories.state
-    val listN = mutableListOf<BusinessData>()
+    val savedLists = mutableListOf<BusinessData>()
 
     init {
         getCategories()
     }
 
     fun searchBusinesses(category: String) = viewModelScope.launch {
-        val x = listN.filter {
+        val currentCategory = savedLists.filter {
             it.name == category
         }
-        if (x.isEmpty()) {
+        if (currentCategory.isEmpty()) {
             getBusinesses.invoke(category)
             Log.d(TAG, "searchBusinesses: if $category")
         } else {
             _businessesState.value = businessesState.value.copy(
-                data = SearchResponseContainer(x.first().list),
+                data = SearchResponseContainer(currentCategory.first().list),
                 isLoading = false,
                 errorMessage = null
             )
@@ -46,7 +46,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun getCategories() = viewModelScope.launch {
+    private fun getCategories() = viewModelScope.launch {
         getCategories.invoke()
     }
 }

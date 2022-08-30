@@ -1,6 +1,5 @@
 package com.android.testcomposeapp.ui.home
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,7 +13,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.android.testcomposeapp.domain.model.BusinessData
 import com.android.testcomposeapp.ui.component.BusinessesComponent
 
-@SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun HomeScreen(category: String = "", viewModel: HomeViewModel = hiltViewModel()) {
     val state = viewModel.businessesState.collectAsState().value
@@ -33,7 +31,7 @@ fun HomeScreen(category: String = "", viewModel: HomeViewModel = hiltViewModel()
                 }
             }
             state.data?.businesses?.isNotEmpty() == true -> {
-                viewModel.listN.add(BusinessData(category,state.data.businesses))
+                viewModel.savedLists.add(BusinessData(category,state.data.businesses))
                 LazyColumn(content = {
                     items(state.data.businesses) {
                         BusinessesComponent(businesses = it)
